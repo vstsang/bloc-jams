@@ -28,6 +28,22 @@ var albumMarconi = {
     ]
 };
 
+var albumMickeyMouse = {
+    title: 'Christmas Collection',
+    artist: 'Mickey Mouse',
+    label: 'Disney',
+    year: '2003',
+    albumArtUrl: 'assets/images/album_covers/MickeyMouse.jpg',
+    songs: [
+        { title: 'Jingle Bells', duration: '2:11' },
+        { title: 'Frosty the Snowman', duration: '2:09' },
+        { title: 'Joy to the World', duration: '2:11'},
+        { title: 'Deck the Halls', duration: '2:38' },
+        { title: 'We wish you a Merry Christmas', duration: '1:44'},
+		{ title: 'Here Comes Santa Claus', duration: '2:15'}
+    ]
+};
+
 var createSongRow = function(songNumber, songName, songLength) {
     var template =
        '<tr class="album-view-song-item">'
@@ -60,6 +76,20 @@ var setCurrentAlbum = function(album) {
     }
 };
 
+var albumArray = [albumPicasso, albumMarconi, albumMickeyMouse];
+
+var currentAlbum = albumArray[0];
+
+var toggleAlbum = function() {
+	var currentAlbum = albumArray.shift();
+	setCurrentAlbum(currentAlbum);
+	albumArray.push(currentAlbum);	
+}
+
+var albumArt = document.getElementsByClassName("album-cover-art")[0]
+
+albumArt.addEventListener("click", function() {toggleAlbum();});
+
 window.onload = function() {
-    setCurrentAlbum(albumPicasso);
+    setCurrentAlbum(currentAlbum);
 };
