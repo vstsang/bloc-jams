@@ -79,7 +79,7 @@ window.onload = function() {
 	
 	for (var i = 0; i < songRows.length; i++) {
 		songRows[i].addEventListener('mouseleave', function(event) {
-        	event.target.children[0].innerHTML = event.target.children[0].getAttribute('data-song-number');		      
+        	this.children[0].innerHTML = this.children[0].getAttribute('data-song-number');		      
 		});
 	}
 };
