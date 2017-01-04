@@ -60,6 +60,7 @@ var setCurrentAlbum = function(album) {
     }
 };
 
+/*
 var findParentByClassName = function(element, targetClass) {
     if (element) {
         var currentParent = element.parentElement;
@@ -68,6 +69,24 @@ var findParentByClassName = function(element, targetClass) {
         }
         return currentParent;
     }
+};
+*/
+
+
+var findParentByClassName = function(element, targetClass) {
+    if (element.parentElement === null) {   // Only the root element <html> would have no parent
+		alert('No parent found');
+	} else {
+        var currentParent = element.parentElement;
+        while (currentParent.className != targetClass && currentParent.className !== null) {
+            currentParent = currentParent.parentElement;
+			
+			if (currentParent.tagName === 'HTML') { 		    // If parent tag is HTML, then it has got to the
+				alert('No parent found with that class name')	// root element and the target doesn't exist
+			} 
+        }                                          
+        return currentParent;
+	}
 };
 
 var getSongItem = function(element) {
