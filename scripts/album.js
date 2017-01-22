@@ -183,6 +183,26 @@ var getSongNumberCell = function(number) {
 	return $('.song-item-number[data-song-number="' + number + '"]');
 };
 
+var togglePlayFromPlayerBar = function () {
+	// If a song is paused and the play button is clicked in the player bar, it will
+	// Change the song number cell from a play button to a pause button
+	// Change the HTML of the player bar's play button to a pause button
+	// Play the song
+	if (currentSoundFile.isPaused()) {
+		getSongNumberCell(currentlyPlayingSongNumber).html(pauseButtonTemplate);
+		$playButton.html(playerBarPauseButton);
+		currentSoundFile.play();
+	// If the song is playing (so a current sound file exist), and the pause button is clicked
+	// Change the song number cell from a pause button to a play button
+	// Change the HTML of the player bar's pause button to a play button
+	// Pause the song
+	} else if (currentSoundFile) {
+		getSongNumberCell(currentlyPlayingSongNumber).html(playButtonTemplate);
+		$playButton.html(playerBarPlayButton);
+		currentSoundFile.pause();	
+	}
+};
+
 var playButtonTemplate = '<a class="album-song-button"><span class="ion-play"></span></a>';
 var pauseButtonTemplate = '<a class="album-song-button"><span class="ion-pause"></span></a>';
 var playerBarPlayButton = '<span class="ion-play"></span>';
@@ -196,10 +216,12 @@ var currentVolume = 80;
 
 var $previousButton = $('.main-controls .previous');
 var $nextButton = $('.main-controls .next');
+var $playButton = $('.main-controls .play-pause');
 
 
 $(document).ready(function() {
     setCurrentAlbum(albumPicasso);
 	$previousButton.click(previousSong);
     $nextButton.click(nextSong);
+	$playButton.click(togglePlayFromPlayerBar);
 });
