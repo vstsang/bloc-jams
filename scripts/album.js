@@ -23,6 +23,7 @@ var createSongRow = function(songNumber, songName, songLength) {
 			setSong(songNumber);
 			currentSoundFile.play();
 			updatePlayerBarSong();
+			updateSeekBarWhileSongPlays();
 		} else if (currentlyPlayingSongNumber === songNumber) {
 			// If paused, start playing the song again and revert the icon 
 			// in the song row and the player bar to the pause button.
@@ -30,6 +31,7 @@ var createSongRow = function(songNumber, songName, songLength) {
 				$(this).html(pauseButtonTemplate);
             	$('.main-controls .play-pause').html(playerBarPauseButton);
 				currentSoundFile.play();
+				updateSeekBarWhileSongPlays();
 			// If it isn't paused,pause it and set the content of the song number cell 
 			// and player bar's pause button back to the play button.
 			} else {
@@ -110,6 +112,7 @@ var nextSong = function() {
 	setSong(currentSongIndex + 1);
 	currentSoundFile.play();
 	updatePlayerBarSong();
+	updateSeekBarWhileSongPlays();
 	
     var lastSongNumber = getLastSongNumber(currentSongIndex);
     
@@ -141,6 +144,7 @@ var previousSong = function() {
 	setSong(currentSongIndex + 1);
 	currentSoundFile.play();
 	updatePlayerBarSong();
+	updateSeekBarWhileSongPlays();
     
     var lastSongNumber = getLastSongNumber(currentSongIndex);
     var $previousSongNumberCell = getSongNumberCell(currentlyPlayingSongNumber);
@@ -171,6 +175,14 @@ var setSong = function(songNumber) {
 		preload: true
 	});
 	setVolume(currentVolume);
+	$('.seek-bar .fill').width(currentVolume + '%');
+	$('.seek-bar .thumb').css({left: currentVolume + '%'});
+};
+
+var seek = function(time) {
+    if (currentSoundFile) {
+        currentSoundFile.setTime(time);
+    }
 };
 
 var setVolume = function(volume) {
@@ -181,6 +193,78 @@ var setVolume = function(volume) {
 
 var getSongNumberCell = function(number) {
 	return $('.song-item-number[data-song-number="' + number + '"]');
+};
+
+var updateSeekBarWhileSongPlays = function() {
+ 	if (currentSoundFile) {
+	 	currentSoundFile.bind('timeupdate', function(event) {
+			
+			var seekBarFillRatio = this.getTime() / this.getDuration();
+			var $seekBar = $('.seek-control .seek-bar');
+
+			updateSeekPercentage($seekBar, seekBarFillRatio);
+		});
+ 	}
+};
+
+var updateSeekPercentage = function($seekBar, seekBarFillRatio) {
+    var offsetXPercent = seekBarFillRatio * 100;
+
+	offsetXPercent = Math.max(0, offsetXPercent);
+    offsetXPercent = Math.min(100, offsetXPercent);
+ 
+    var percentageString = offsetXPercent + '%';
+    $seekBar.find('.fill').width(percentageString);
+    $seekBar.find('.thumb').css({left: percentageString});
+ };
+
+var setupSeekBars = function() {
+ 	var $seekBars = $('.player-bar .seek-bar');
+
+ 	$seekBars.click(function(event) {
+		var offsetX = event.pageX - $(this).offset().left;
+		var barWidth = $(this).width(); // width of the $seekBars
+		// we divide offsetX by the width of the entire bar 
+		// to calculate  seekBarFillRatio
+		var seekBarFillRatio = offsetX / barWidth;
+
+		if ($(this).parents()[1].className === 'control-group currently-playing') {
+			seek(seekBarFillRatio * (currentSoundFile.getDuration()));
+		} else if ($(this).parent()[0].className === 'control-group volume') {
+			setVolume(seekBarFillRatio * 100);
+		}
+		
+		updateSeekPercentage($(this), seekBarFillRatio);
+
+	});
+	
+	$seekBars.find('.thumb').mousedown(function(event) {
+		var $seekBar = $(this).parent();
+
+		$(document).bind('mousemove.thumb', function(event){
+			var offsetX = event.pageX - $seekBar.offset().left;
+			var barWidth = $seekBar.width();
+			var seekBarFillRatio = offsetX / barWidth;
+			
+			// Only update $seekBar, not $seekBars, so only the clicked bar is updated
+           if ($seekBar.parent().attr('class') == 'seek-control') {
+                seek(seekBarFillRatio * currentSoundFile.getDuration());   
+            } else {
+                setVolume(seekBarFillRatio);
+            }
+			
+			updateSeekPercentage($seekBar, seekBarFillRatio);
+
+		});
+
+		// attached the mousemove event to $(document) to make sure
+		// that we can drag the thumb after mousing down, even when the
+		// mouse leaves the seek bar. thumb is use to make sure it unbinds the right event
+		$(document).bind('mouseup.thumb', function() {
+			$(document).unbind('mousemove.thumb');
+			$(document).unbind('mouseup.thumb');
+		});		
+	}); 
 };
 
 var playButtonTemplate = '<a class="album-song-button"><span class="ion-play"></span></a>';
@@ -200,6 +284,7 @@ var $nextButton = $('.main-controls .next');
 
 $(document).ready(function() {
     setCurrentAlbum(albumPicasso);
+	setupSeekBars();
 	$previousButton.click(previousSong);
     $nextButton.click(nextSong);
 });
